@@ -1,0 +1,14 @@
+apiVersion: v1        #版本号
+kind: Service        #服务类型
+metadata:
+  labels:
+    bpp: dongliangde
+  name: dataservice
+  namespace: testyaml
+spec:
+  type: NodePort     #端口映射
+  ports:
+    - port: 10215        #内部端口
+      targetPort: 10215  #映射端口
+  selector:       #选择器
+    app: dataservice            #选择业务进行发布

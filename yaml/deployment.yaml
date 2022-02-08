@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    bpp: dongliangde
+  name: dataservice
+  namespace: testyaml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      bpp: dongliangde
+  template:
+    metadata:
+      labels:
+        bpp: dongliangde
+    spec:
+      containers:
+        - command:
+            - ./opt/app/Cloud-DataService
+            - '-port'
+            - '10215'
+            - '-address'
+            - ':50001'
+            - '-engine_address'
+            - 'svc-ddsengine:50053'
+          image: 'registry.cqhorizon.com/cloud/dataservice:v3.0.7'
+          name: dataservice

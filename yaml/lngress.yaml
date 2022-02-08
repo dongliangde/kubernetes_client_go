@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    k8s.kuboard.cn/layer: gateway
+    k8s.kuboard.cn/name: gateway-nginx
+  name: gateway-nginx
+  namespace: map
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: mapconfig.cqk8s.tk
+      http:
+        paths:
+          - backend:
+              service:
+                name: gateway-nginx
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - mapconfig.cqk8s.tk
+      secretName: cqk8s.tk
+status:
+  loadBalancer:
+    ingress:
+      - ip: 10.106.49.237
+

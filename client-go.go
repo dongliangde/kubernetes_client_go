@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	dv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
@@ -22,22 +23,30 @@ type KubernetesConfig struct {
 }
 
 func main() {
+	//获取config配置
 	config, err := clientcmd.BuildConfigFromFlags("", "./config/config")
 	if err != nil {
 		panic("config 文件加载失败")
 	}
 	kubernetesConfig := NewKubernetesConfig(config, "testyaml")
 	ctx := context.Background()
+	//Namespaces
 	//_, err = kubernetesConfig.CreateNamespaces(ctx, "./yaml/namespace.yaml")
-	//_, err = kubernetesConfig.CreateDeployment(ctx, "./yaml/deployment.yaml")
-	//_, err = kubernetesConfig.CreateServices(ctx, "./yaml/services.yaml")
 	//namespacesList, err := kubernetesConfig.QueryNamespaces(ctx)
+	//Deployment
+	//_, err = kubernetesConfig.CreateDeployment(ctx, "./yaml/deployment.yaml")
 	//deploymentList, err := kubernetesConfig.QueryDeployment(ctx)
-	servicesList, err := kubernetesConfig.QueryServices(ctx)
+	//err = kubernetesConfig.DeleteDeployment(ctx,"dataservice")
+	//services
+	//_, err = kubernetesConfig.CreateServices(ctx, "./yaml/services.yaml")
+	//servicesList, err := kubernetesConfig.QueryServices(ctx)
+	//lngress
+	_, _ = kubernetesConfig.Createlngress(ctx, "./yaml/lngress/lngress.yaml")
+	//storage
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println(servicesList)
+	//fmt.Println(namespacesList)
 }
 
 func NewKubernetesConfig(config *restClient.Config, namespace string) *KubernetesConfig {
@@ -50,7 +59,6 @@ func NewKubernetesConfig(config *restClient.Config, namespace string) *Kubernete
 		ClientSet: clientSet,
 		Namespace: namespace,
 	}
-
 }
 
 /**
@@ -63,16 +71,16 @@ func NewKubernetesConfig(config *restClient.Config, namespace string) *Kubernete
  * @return error
  */
 func (k *KubernetesConfig) CreateNamespaces(ctx context.Context, fileName string) (*v1.Namespace, error) {
-	namespace := &v1.Namespace{}
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		logrus.Error(err)
-		return namespace, err
+		return nil, err
 	}
 	if data, err = yaml.ToJSON(data); err != nil {
 		logrus.Error(err)
-		return namespace, err
+		return nil, err
 	}
+	namespace := &v1.Namespace{}
 	if err = json.Unmarshal(data, namespace); err != nil {
 		logrus.Error(err)
 		return namespace, err
@@ -112,16 +120,16 @@ func (k *KubernetesConfig) QueryNamespaces(ctx context.Context) (*v1.NamespaceLi
  * @return error
  */
 func (k *KubernetesConfig) CreateDeployment(ctx context.Context, fileName string) (*dv1.Deployment, error) {
-	deployment := &dv1.Deployment{}
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		logrus.Error(err)
-		return deployment, err
+		return nil, err
 	}
 	if data, err = yaml.ToJSON(data); err != nil {
 		logrus.Error(err)
-		return deployment, err
+		return nil, err
 	}
+	deployment := &dv1.Deployment{}
 	if err = json.Unmarshal(data, deployment); err != nil {
 		logrus.Error(err)
 		return deployment, err
@@ -152,6 +160,23 @@ func (k *KubernetesConfig) QueryDeployment(ctx context.Context) (*dv1.Deployment
 }
 
 /**
+ * @Function: DeleteDeployment
+ * @Description: 删除pod
+ * @receiver k
+ * @param ctx
+ * @return *dv1.DeploymentList
+ * @return error
+ */
+func (k *KubernetesConfig) DeleteDeployment(ctx context.Context, name string) error {
+	err := k.ClientSet.AppsV1().Deployments(k.Namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+	return nil
+}
+
+/**
  * @Function: CreateServices
  * @Description: 创建全新的Services
  * @receiver k
@@ -161,16 +186,16 @@ func (k *KubernetesConfig) QueryDeployment(ctx context.Context) (*dv1.Deployment
  * @return error
  */
 func (k *KubernetesConfig) CreateServices(ctx context.Context, fileName string) (*v1.Service, error) {
-	service := &v1.Service{}
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		logrus.Error(err)
-		return service, err
+		return nil, err
 	}
 	if data, err = yaml.ToJSON(data); err != nil {
 		logrus.Error(err)
-		return service, err
+		return nil, err
 	}
+	service := &v1.Service{}
 	if err = json.Unmarshal(data, service); err != nil {
 		logrus.Error(err)
 		return service, err
@@ -210,16 +235,16 @@ func (k *KubernetesConfig) QueryServices(ctx context.Context) (*v1.ServiceList, 
  * @return error
  */
 func (k *KubernetesConfig) CreateIngress(ctx context.Context, fileName string) (*v1.Service, error) {
-	service := &v1.Service{}
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		logrus.Error(err)
-		return service, err
+		return nil, err
 	}
 	if data, err = yaml.ToJSON(data); err != nil {
 		logrus.Error(err)
-		return service, err
+		return nil, err
 	}
+	service := &v1.Service{}
 	if err = json.Unmarshal(data, service); err != nil {
 		logrus.Error(err)
 		return service, err
@@ -230,4 +255,68 @@ func (k *KubernetesConfig) CreateIngress(ctx context.Context, fileName string) (
 		return service, err
 	}
 	return service, nil
+}
+
+/**
+ * @Function: CreateStorageClass
+ * @Description: 创建StorageClass
+ * @receiver k
+ * @param ctx
+ * @param fileName yaml文件地址
+ * @return *v1.Service
+ * @return error
+ */
+func (k *KubernetesConfig) CreateStorageClass(ctx context.Context, fileName string) (*storagev1.StorageClass, error) {
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	if data, err = yaml.ToJSON(data); err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	storageClass := &storagev1.StorageClass{}
+	if err = json.Unmarshal(data, storageClass); err != nil {
+		logrus.Error(err)
+		return storageClass, err
+	}
+	storageClass, err = k.ClientSet.StorageV1().StorageClasses().Create(ctx, storageClass, metav1.CreateOptions{})
+	if err != nil {
+		logrus.Error(err)
+		return storageClass, err
+	}
+	return storageClass, nil
+}
+
+/**
+ * @Function: Createlngress
+ * @Description: 创建lngress
+ * @receiver k
+ * @param ctx
+ * @param fileName yaml文件地址
+ * @return *v1.Service
+ * @return error
+ */
+func (k *KubernetesConfig) Createlngress(ctx context.Context, fileName string) (*networkingv1.IngressClass, error) {
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	if data, err = yaml.ToJSON(data); err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	ingressClass := &networkingv1.IngressClass{}
+	if err = json.Unmarshal(data, ingressClass); err != nil {
+		logrus.Error(err)
+		return ingressClass, err
+	}
+	ingressClass, err = k.ClientSet.NetworkingV1().IngressClasses().Create(ctx, ingressClass, metav1.CreateOptions{})
+	if err != nil {
+		logrus.Error(err)
+		return ingressClass, err
+	}
+	return ingressClass, nil
 }

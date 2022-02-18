@@ -85,7 +85,7 @@ showmount -e 172.18.186.160
 
 新建挂载点：mkdir -p /opt/nfs_test
 
-挂载：mount 172.18.186.160:/home/nfs /opt/nfs_test
+挂载：mount 192.168.2.111:/home/nfs /opt/nfs_test
 
 到这里就挂载成功了。
 

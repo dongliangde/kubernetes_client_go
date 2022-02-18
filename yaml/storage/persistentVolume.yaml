@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  finalizers:
+    - kubernetes.io/pv-protection
+  name: nfs-pv-mysql
+spec:
+  accessModes:
+    - ReadWriteMany
+  capacity:
+    storage: 10Gi
+  nfs:
+    path: /home/nfs                 #NFS共享路径
+    server: 192.168.2.111           #NFS服务器IP
+  storageClassName: nfs-storageclass-provisioner

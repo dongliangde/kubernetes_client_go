@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    bpp: dongliangde
+  name: dataservice
+  namespace: testyaml
+spec:
+  defaultBackend:
+    service:
+      name: dataservice
+      port:
+        number: 10215
+  ingressClassName: nginx
+  rules:
+    - host: testyaml.cqk8s.tk
+      http:
+        paths:
+          - backend:
+              service:
+                name: dataservice
+                port:
+                  number: 10215
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - testyaml.cqk8s.tk
+      secretName: cqk8s.tk

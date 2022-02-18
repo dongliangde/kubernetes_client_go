@@ -26,3 +26,5 @@ spec:
             - 'svc-ddsengine:50053'
           image: 'registry.cqhorizon.com/cloud/dataservice:v3.0.7'
           name: dataservice
+      imagePullSecrets:   #Secrets镜像名称
+          - name: cq
